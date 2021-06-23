@@ -14,6 +14,7 @@ while not correct_input:
     historical_date = input("Which year do you want to travel to? Type the date in this format YYYY-MM-DD: ")
 
     if rex.match(historical_date):
+        # Billboard Hot 100 scraping
         response = requests.get(URL + historical_date)
         website_html = response.text
         soup = BeautifulSoup(website_html, "html.parser")
@@ -21,6 +22,7 @@ while not correct_input:
         all_songs = soup.find_all(name="span", class_="chart-element__information__song")
         song_titles = [song.getText() for song in all_songs]
 
+        # Spotify Authentication
         sp = spotipy.Spotify(
             auth_manager=SpotifyOAuth(
                 scope="playlist-modify-private",
@@ -33,6 +35,20 @@ while not correct_input:
         )
 
         user_id = sp.current_user()["id"]
-        print(user_id)
+        # print(user_id)
+
+        # Search Spotify for songs by title
+        song_uris = []
+        year = historical_date.split("-")[0]
+
+        for song in song_titles:
+            result = sp.search(q=f"track:{song} year:{year}", type="track")
+            # print(result)
+
+        try:
+            uri = result["tracks"]["items"][0]["uri"]
+            song_uris.append(uri)
+        except IndexError:
+            print(f"{song} doesn't exist in Spotify. Skipped.")
 
         correct_input = True
